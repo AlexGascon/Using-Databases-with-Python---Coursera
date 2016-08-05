@@ -1,3 +1,19 @@
+#Ignoring example code and lecture material
+EXAMPLE CODE/*
+python-databases/*
+
+#Ignoring own Course certificate
+Certificate.pdf
+
+#Ignoring Word documents - Class notes still not finished
+*.doc
+*.docx
+
+#Ignoring databases and .zip files
+*.zip
+*.sqlite
+*.db
+
 # Windows image file caches
 Thumbs.db
 ehthumbs.db
