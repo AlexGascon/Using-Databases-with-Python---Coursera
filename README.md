@@ -1,5 +1,5 @@
 #Introduction
-This repository contains the resources and materials I've generated myself during the course ["Using Databases with Python"](https://www.coursera.org/learn/python-databases/), from University of Michigan and offered in Coursera
+This repository contains the resources and materials I've generated myself during the course ["Using Databases with Python"](https://www.coursera.org/learn/python-databases/), from University of Michigan and offered in Coursera. This course is one of the best Python courses offered in Coursera.
 
 #Content available
 Currently, the only content available are the Python files corresponding to the programming assignments I've coded for the course. I plan on making available also documents with my notes from the course, but I'm still finishing them
