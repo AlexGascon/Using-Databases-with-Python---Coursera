@@ -29,83 +29,74 @@ looks like 53656C696E613333.
 
 import json
 import sqlite3
-
-#PART 1: Creating the database
-dbname = "roster.sqlite"
-conn = sqlite3.connect(dbname)
+ 
+conn = sqlite3.connect('rosterdb.sqlite') 
 cur = conn.cursor()
-
+ 
+# Do some setup
 cur.executescript('''
-	DROP TABLE IF EXISTS User;
-	DROP TABLE IF EXISTS Course;
-	DROP TABLE IF EXISTS Member;
-
-	CREATE TABLE User (
-		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-		name TEXT UNIQUE 
-	);
-
-	CREATE TABLE Course (
-		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
-		title TEXT UNIQUE
-	);
-
-	CREATE TABLE Member (
-		user_id INTEGER,
-		course_id INTEGER,
-		role INTEGER,
-		PRIMARY KEY(user_id, course_id)
-	)
+DROP TABLE IF EXISTS User;
+DROP TABLE IF EXISTS Member;
+DROP TABLE IF EXISTS Course;
+ 
+ 
+CREATE TABLE User (
+    id     INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+    name   TEXT UNIQUE
+);
+ 
+CREATE TABLE Course (
+    id     INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,
+    title  TEXT UNIQUE
+);
+ 
+CREATE TABLE Member (
+    user_id     INTEGER,
+    course_id   INTEGER,
+    role        INTEGER,
+    PRIMARY KEY (user_id, course_id)
+)
 ''')
-#Note: if we don't add UNIQUE after "User.name" and "Course.title", 
-#the IGNORE statement won't work and therefore we'll have duplicates
-
-
-#PART 2: DESERIALIZING THE data
-#The JSON data we're going to process is stored in an array form, with each
-#item being also an array of three elements: one corresponding to the username 
-#one corresponding to the course name, and one indicating if the user is instructor
-#None of them has any field title. 
-
-filename = "roster_data.json"
-jsondata = open(filename)
-data = json.load(jsondata)
-
-#PART 3: INSERTING DATA
-for entry in data:
-	user = entry[0]
-	course = entry[1]
-	instructor = entry[2]
-
-	#Inserting user
-	user_statement = """INSERT OR IGNORE INTO User(name) VALUES( ? )"""
-	SQLparams = (user, )
-	cur.execute(user_statement, SQLparams)
-
-	#Inserting course
-	course_statement = """INSERT OR IGNORE INTO Course(title) VALUES( ? )"""
-	SQLparams = (course, )
-	cur.execute(course_statement, SQLparams)
-
-	#Getting user and course id
-	courseID_statement = """SELECT id FROM Course WHERE title = ?"""
-	SQLparams = (course, )
-	cur.execute(courseID_statement, SQLparams)
-	courseID = cur.fetchone()[0]
-
-	userID_statement = """SELECT id FROM User WHERE name = ?"""
-	SQLparams = (user, )
-	cur.execute(userID_statement, SQLparams)
-	userID = cur.fetchone()[0]
-
-	#Inserting the entry
-	member_statement = """INSERT INTO Member(user_id, course_id, role)
-		VALUES(?, ?, ?)"""
-	SQLparams = (userID, courseID, instructor)
-	cur.execute(member_statement, SQLparams)
-
-#Saving the changes
-conn.commit()
+ 
+fname = input('Enter file name: ')
+if len(fname) < 1:
+    fname = 'roster_data.json'
+ 
+# [
+#   [ "Charley", "si110", 1 ],
+#   [ "Mea", "si110", 0 ],
+ 
+str_data = open(fname).read()
+json_data = json.loads(str_data)
+ 
+for entry in json_data:
+ 
+    name = entry[0]
+    title = entry[1]
+    role= entry[2]
+ 
+    print((name, title, role))
+ 
+    cur.execute('''INSERT OR IGNORE INTO User (name)
+        VALUES ( ? )''', ( name, ) )
+    cur.execute('SELECT id FROM User WHERE name = ? ', (name, ))
+    user_id = cur.fetchone()[0]
+ 
+    cur.execute('''INSERT OR IGNORE INTO Course (title)
+        VALUES ( ? )''', ( title, ) )
+    cur.execute('SELECT id FROM Course WHERE title = ? ', (title, ))
+    course_id = cur.fetchone()[0]
+ 
+    cur.execute('''INSERT OR IGNORE INTO Member (role)
+        VALUES ( ? )''', ( role, ) )
+     
+     
+ 
+    cur.execute('''INSERT OR REPLACE INTO Member
+        (user_id, course_id) VALUES ( ?, ?)''',
+        ( user_id, course_id ) )
+ 
+    conn.commit()
 
 #PART 4: Testing and obtaining the results
 test_statement = """
